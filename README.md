@@ -71,7 +71,7 @@ Address
 
 Clone the repository:
 
-git clone https://github.com/your-username/Hostel-Management-System.git
+git clone https://github.com/VarunGupta2327/Hostel-Management-System.git
 
 Open the folder
 
