@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Hostel Management</title>
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #333;
+    min-height: 600px;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    color: #fff;
+    text-align: center;
+    font-weight: 700;
+    margin: 10px 0 20px 0;
+    font-size: 1.8rem;
+  }
+  h2 {
+    color: #fafafa;
+    margin: 1em 0 0.5em 0;
+    font-weight: 600;
+  }
+  label {
+    font-size: 0.9rem;
+    color: #f0f0f0;
+    display: block;
+    margin-top: 10px;
+  }
+  input, select {
+    width: 100%;
+    padding: 6px 10px;
+    margin-top: 4px;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 12px;
+    background-color: #5a67d8;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #434190;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 0.88rem;
+  }
+  thead {
+    background-color: #5a67d8;
+    color: white;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .action-btn {
+    background: transparent;
+    color: #5a67d8;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 2px 6px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    transition: background-color 0.25s ease;
+  }
+  .action-btn:hover {
+    background-color: #c3c8ff;
+  }
+
+  /* Scroll containers for small screen */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 220px;
+  }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+    button {
+      font-size: 0.9rem;
+      padding: 7px 10px;
+    }
+  }
+
+  /* Footer */
+  footer {
+    margin-top: auto;
+    text-align: center;
+    color: #ddd;
+    font-size: 0.8rem;
+    padding: 6px 0;
+  }
+</style>
+</head>
+<body>
+<h1>Hostel Management</h1>
+
+<section id="student-section">
+  <h2>Manage Students</h2>
+  <form id="student-form">
+    <input type="hidden" id="student-id" />
+    <label for="student-name">Name</label>
+    <input type="text" id="student-name" placeholder="Enter student name" required />
+    <label for="room-number">Room Number</label>
+    <input type="text" id="room-number" placeholder="Enter room number" required />
+    <label for="contact-info">Contact Info</label>
+    <input type="tel" id="contact-info" placeholder="Enter contact number" required pattern="[0-9\-+\s]+" />
+    <button type="submit">Add Student</button>
+  </form>
+  <div class="table-container" aria-live="polite" aria-atomic="true">
+    <table id="students-table" aria-label="Student Data">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Room</th>
+          <th>Contact</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- student rows -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr style="margin: 18px 0; border: 1px solid #bbb;">
+
+<section id="payment-section">
+  <h2>Manage Payments</h2>
+  <form id="payment-form">
+    <input type="hidden" id="payment-id" />
+    <label for="payment-student">Select Student</label>
+    <select id="payment-student" required>
+      <option value="" disabled selected>Select a student</option>
+    </select>
+    <label for="payment-month">Month & Year</label>
+    <input type="month" id="payment-month" required />
+    <label for="payment-amount">Amount (Monthly Rent)</label>
+    <input type="number" id="payment-amount" placeholder="Enter amount" min="0" step="0.01" required />
+    <button type="submit">Add Payment</button>
+  </form>
+  <div class="table-container" aria-live="polite" aria-atomic="true">
+    <table id="payments-table" aria-label="Payment Data">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Month</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- payment rows -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  &copy; 2024 Hostel Management System
+</footer>
+
+<script>
+  const studentForm = document.getElementById('student-form');
+  const studentsTableBody = document.querySelector('#students-table tbody');
+  const studentIdInput = document.getElementById('student-id');
+  const studentNameInput = document.getElementById('student-name');
+  const roomNumberInput = document.getElementById('room-number');
+  const contactInput = document.getElementById('contact-info');
+
+  const paymentForm = document.getElementById('payment-form');
+  const paymentStudentSelect = document.getElementById('payment-student');
+  const paymentMonthInput = document.getElementById('payment-month');
+  const paymentAmountInput = document.getElementById('payment-amount');
+  const paymentsTableBody = document.querySelector('#payments-table tbody');
+  const paymentIdInput = document.getElementById('payment-id');
+
+  // Local storage keys
+  const STORAGE_KEYS = {
+    STUDENTS: 'hostel_students',
+    PAYMENTS: 'hostel_payments',
+  };
+
+  // Load saved students and payments from localStorage or initialize empty arrays
+  function loadData() {
+    const studentsJson = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+    const paymentsJson = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
+    return {
+      students: studentsJson ? JSON.parse(studentsJson) : [],
+      payments: paymentsJson ? JSON.parse(paymentsJson) : [],
+    };
+  }
+
+  // Save data to localStorage
+  function saveData(students, payments) {
+    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+    localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(payments));
+  }
+
+  // Generate a unique id
+  function genId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Display students in table
+  function renderStudents(students) {
+    studentsTableBody.innerHTML = '';
+    if (students.length === 0) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 4;
+      cell.textContent = 'No students found.';
+      cell.style.textAlign = 'center';
+      row.appendChild(cell);
+      studentsTableBody.appendChild(row);
+      updateStudentDropdown(students);
+      return;
+    }
+    students.forEach(student => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(student.name)}</td>
+        <td>${escapeHtml(student.room)}</td>
+        <td>${escapeHtml(student.contact)}</td>
+        <td style="white-space: nowrap;">
+          <button aria-label="Edit student ${escapeHtml(student.name)}" class="action-btn edit-student" data-id="${student.id}">Edit</button>
+          <button aria-label="Delete student ${escapeHtml(student.name)}" class="action-btn delete-student" data-id="${student.id}">Delete</button>
+        </td>
+      `;
+      studentsTableBody.appendChild(tr);
+    });
+    updateStudentDropdown(students);
+  }
+
+  // Display payments in table
+  function renderPayments(payments, students) {
+    paymentsTableBody.innerHTML = '';
+    if (payments.length === 0) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 4;
+      cell.textContent = 'No payments recorded.';
+      cell.style.textAlign = 'center';
+      row.appendChild(cell);
+      paymentsTableBody.appendChild(row);
+      return;
+    }
+    payments.forEach(payment => {
+      // find student name
+      let studentName = 'Deleted student';
+      const student = students.find(s => s.id === payment.studentId);
+      if (student) studentName = student.name;
+
+      const monthFormatted = formatMonthYear(payment.month);
+      const amountFormatted = parseFloat(payment.amount).toFixed(2);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(studentName)}</td>
+        <td>${escapeHtml(monthFormatted)}</td>
+        <td>$${escapeHtml(amountFormatted)}</td>
+        <td style="white-space: nowrap;">
+          <button aria-label="Edit payment for ${escapeHtml(studentName)} month ${escapeHtml(monthFormatted)}" class="action-btn edit-payment" data-id="${payment.id}">Edit</button>
+          <button aria-label="Delete payment for ${escapeHtml(studentName)} month ${escapeHtml(monthFormatted)}" class="action-btn delete-payment" data-id="${payment.id}">Delete</button>
+        </td>
+      `;
+      paymentsTableBody.appendChild(tr);
+    });
+  }
+
+  // Update payment student dropdown options
+  function updateStudentDropdown(students) {
+    paymentStudentSelect.innerHTML = '<option value="" disabled selected>Select a student</option>';
+    students.forEach(student => {
+      const option = document.createElement('option');
+      option.value = student.id;
+      option.textContent = student.name + ' (Room ' + student.room + ')';
+      paymentStudentSelect.appendChild(option);
+    });
+  }
+
+  // Format month-year like "April 2024"
+  function formatMonthYear(value) {
+    if (!value) return '';
+    const [year, month] = value.split('-');
+    const date = new Date(year, month - 1);
+    return date.toLocaleString('default', {month: 'long', year: 'numeric'});
+  }
+
+  // Escape HTML to prevent injection
+  function escapeHtml(text) {
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // Handle student form submit (Add or Edit)
+  studentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    let {students, payments} = loadData();
+
+    const id = studentIdInput.value;
+    const name = studentNameInput.value.trim();
+    const room = roomNumberInput.value.trim();
+    const contact = contactInput.value.trim();
+
+    if (!name || !room || !contact) {
+      alert('Please enter all student details.');
+      return;
+    }
+
+    if (id) {
+      // Edit existing student
+      const index = students.findIndex(s => s.id === id);
+      if (index !== -1) {
+        students[index].name = name;
+        students[index].room = room;
+        students[index].contact = contact;
+      }
+    } else {
+      // Add new student
+      students.push({
+        id: genId(),
+        name,
+        room,
+        contact,
+      });
+    }
+
+    saveData(students, payments);
+    renderStudents(students);
+    studentForm.reset();
+    studentIdInput.value = '';
+    studentForm.querySelector('button').textContent = 'Add Student';
+  });
+
+  // Click handlers on student table (edit/delete)
+  studentsTableBody.addEventListener('click', e => {
+    if (e.target.classList.contains('edit-student')) {
+      const id = e.target.dataset.id;
+      const {students} = loadData();
+      const student = students.find(s => s.id === id);
+      if (student) {
+        studentIdInput.value = student.id;
+        studentNameInput.value = student.name;
+        roomNumberInput.value = student.room;
+        contactInput.value = student.contact;
+        studentForm.querySelector('button').textContent = 'Update Student';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+    } else if (e.target.classList.contains('delete-student')) {
+      if (!confirm('Are you sure you want to delete this student? This will also delete their payments.')) return;
+      const id = e.target.dataset.id;
+      let {students, payments} = loadData();
+      students = students.filter(s => s.id !== id);
+      payments = payments.filter(p => p.studentId !== id);
+      saveData(students, payments);
+      renderStudents(students);
+      renderPayments(payments, students);
+    }
+  });
+
+  // Handle payment form submit (Add/Edit)
+  paymentForm.addEventListener('submit', e => {
+    e.preventDefault();
+    let {students, payments} = loadData();
+
+    const id = paymentIdInput.value;
+    const studentId = paymentStudentSelect.value;
+    const month = paymentMonthInput.value;
+    const amount = paymentAmountInput.value;
+
+    if (!studentId || !month || !amount || amount < 0) {
+      alert('Please enter valid payment details.');
+      return;
+    }
+
+    if (!students.find(s => s.id === studentId)) {
+      alert('Selected student does not exist.');
+      return;
+    }
+
+    if (id) {
+      const index = payments.findIndex(p => p.id === id);
+      if (index !== -1) {
+        payments[index].studentId = studentId;
+        payments[index].month = month;
+        payments[index].amount = parseFloat(amount).toFixed(2);
+      }
+    } else {
+      payments.push({
+        id: genId(),
+        studentId,
+        month,
+        amount: parseFloat(amount).toFixed(2),
+      });
+    }
+
+    saveData(students, payments);
+    renderPayments(payments, students);
+    paymentForm.reset();
+    paymentIdInput.value = '';
+    paymentForm.querySelector('button').textContent = 'Add Payment';
+  });
+
+  // Click handlers on payment table (edit/delete)
+  paymentsTableBody.addEventListener('click', e => {
+    if (e.target.classList.contains('edit-payment')) {
+      const id = e.target.dataset.id;
+      const {students, payments} = loadData();
+      const payment = payments.find(p => p.id === id);
+      if (payment) {
+        paymentIdInput.value = payment.id;
+        paymentStudentSelect.value = payment.studentId;
+        paymentMonthInput.value = payment.month;
+        paymentAmountInput.value = payment.amount;
+        paymentForm.querySelector('button').textContent = 'Update Payment';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+    } else if (e.target.classList.contains('delete-payment')) {
+      if (!confirm('Are you sure you want to delete this payment?')) return;
+      const id = e.target.dataset.id;
+      let {students, payments} = loadData();
+      payments = payments.filter(p => p.id !== id);
+      saveData(students, payments);
+      renderPayments(payments, students);
+    }
+  });
+
+  // Initial rendering
+  function init() {
+    const data = loadData();
+    renderStudents(data.students);
+    renderPayments(data.payments, data.students);
+  }
+
+  init();
+</script>
+</body>
+</html>
+
